@@ -1,0 +1,7 @@
+╭─f4r4w4y@blackrock ~/Documents/general/assignment/PST/af1card
+╰─$ arduino-cli board listall | grep -i esp32cam
+AI Thinker ESP32-CAM             esp32:esp32:esp32cam                        
+
+╭─f4r4w4y@blackrock ~/Documents/general/assignment/PST/af1card
+╰─$ arduino-cli board listall | grep -i "pico kit"
+ESP32 Pico Kit                   esp32:esp32:pico32                        
