@@ -25,6 +25,14 @@ typedef struct MessageStruct
      */
     int button_click;
 
+    /*  DATA TYPE
+     *  ---------
+     *  [-1] Dont Care
+     *  [1] QRCODE data
+     *  [2] NFC/RFID data
+     */
+    int data_type;
+
     char data[200];
 } MessageStruct;
 
@@ -34,10 +42,11 @@ MessageStruct transfer_payload;
 MessageStruct receive_payload;
 /* ---------------------------------- */
 
-void sendData(int payoad_event_type, int payload_button_click, char *payload_data_send)
+void sendData(int payoad_event_type, int payload_button_click, int payload_data_type, char *payload_data_send)
 {
     transfer_payload.event_type = payoad_event_type;
     transfer_payload.button_click = payload_button_click;
+    transfer_payload.data_type = payload_data_type;
     strcpy(transfer_payload.data, payload_data_send);
     esp_err_t result = esp_now_send(cam_address, (uint8_t *)&transfer_payload, sizeof(transfer_payload));
 
@@ -83,11 +92,11 @@ public:
             switch (button_pin)
             {
             case RED_BUTTON:
-                sendData(1, 1, "");
+                sendData(1, -1, 1, "");
                 break;
 
             case GREEN_BUTTON:
-                sendData(1, 2, "");
+                sendData(1, -1, 2, "");
                 break;
 
             default:
@@ -120,7 +129,36 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *received_data, int len)
     memcpy(&receive_payload, received_data, sizeof(receive_payload));
     Serial.print("Bytes received: ");
     Serial.println(len);
-    strcpy(payload_data, receive_payload.data);
+
+    switch (receive_payload.event_type)
+    {
+    case 1:
+        // Should be unreachable
+        Serial.println("Something wrong happened");
+        Serial.println("Must've sent a wrong event_type");
+        break;
+
+    case 2:
+        strcpy(payload_data, receive_payload.data);
+        Serial.printf("Got data: %s\n\n", payload_data);
+        switch (receive_payload.data_type)
+        {
+        case 1:
+            /* code */
+            break;
+
+        case 2:
+            /* code */
+            break;
+
+        default:
+            break;
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 void setup()
