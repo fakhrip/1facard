@@ -111,6 +111,9 @@ MessageStruct receive_payload;
 
 ESPino32CAM cam;
 ESPino32QRCode qr;
+
+camera_fb_t *fb = NULL;
+dl_matrix3du_t *rgb888, *rgb565, *image_rgb;
 /* -------------------------- */
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -559,11 +562,11 @@ void drawDataInputPage(ChoiceState chosen_data_type)
     case INPUT_QRCODE:
         tft.fillScreen(TFT_WHITE);
 
-        digitalWrite(flash, HIGH);
+        digitalWrite(FLASH_PIN, HIGH);
         delay(500);
 
-        camera_fb_t *fb = cam.capture();
-        digitalWrite(flash, LOW);
+        fb = cam.capture();
+        digitalWrite(FLASH_PIN, LOW);
         if (!fb)
         {
             Serial.println("Image capture failed.");
@@ -572,7 +575,6 @@ void drawDataInputPage(ChoiceState chosen_data_type)
 
         fex.drawJpg((const uint8_t *)fb->buf, fb->len, 0, 0);
 
-        dl_matrix3du_t *rgb888, *rgb565;
         if (cam.jpg2rgb(fb, &rgb888))
         {
             rgb565 = cam.rgb565(rgb888);
@@ -580,14 +582,13 @@ void drawDataInputPage(ChoiceState chosen_data_type)
         cam.clearMemory(rgb888);
         cam.clearMemory(rgb565);
 
-        dl_matrix3du_t *image_rgb;
         if (cam.jpg2rgb(fb, &image_rgb))
         {
             cam.clearMemory(fb);
             qrResoult res = qr.recognition(image_rgb);
             if (res.status)
             {
-                strcpy(payload_data, res.payload);
+                res.payload.toCharArray(payload_data, 200);
                 Serial.println();
                 Serial.printf("QR Code Read: %s\n\n", res.payload);
                 sendData(2, -1, 1, payload_data);
@@ -601,6 +602,8 @@ void drawDataInputPage(ChoiceState chosen_data_type)
         }
 
         cam.clearMemory(image_rgb);
+        esp_camera_fb_return(fb);
+        fb = NULL;
         break;
 
     case INPUT_NFCRFID:
