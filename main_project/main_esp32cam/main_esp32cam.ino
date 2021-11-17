@@ -401,28 +401,28 @@ void drawChoicePage(ChoiceState chosen_data_type)
         tft.setTextColor(TFT_DARKGREEN);
         tft.setTextSize(3);
 
-        tft.setCursor(25, ((int)h / 2) - 65);
+        tft.setCursor(30, ((int)h / 2) - 65);
         tft.println("------------");
-        tft.setCursor(25, ((int)h / 2) - 30);
-        tft.println("[*] QRCODE");
-        tft.setCursor(25, ((int)h / 2) + 5);
-        tft.println("[ ] NFC/RFID");
-        tft.setCursor(25, ((int)h / 2) + 20);
-        tft.println("------------");
+        tft.setCursor(30, ((int)h / 2) - 30);
+        tft.println("* QRCODE");
+        tft.setCursor(30, ((int)h / 2) + 5);
+        tft.println("  NFC/RFID");
+        tft.setCursor(30, ((int)h / 2) + 20);
+        tft.println("----------");
         break;
 
     case INPUT_NFCRFID:
         tft.setTextColor(TFT_DARKGREEN);
         tft.setTextSize(3);
 
-        tft.setCursor(25, ((int)h / 2) - 65);
+        tft.setCursor(30, ((int)h / 2) - 65);
         tft.println("------------");
-        tft.setCursor(25, ((int)h / 2) - 30);
-        tft.println("[ ] QRCODE");
-        tft.setCursor(25, ((int)h / 2) + 5);
-        tft.println("[*] NFC/RFID");
-        tft.setCursor(25, ((int)h / 2) + 20);
-        tft.println("------------");
+        tft.setCursor(30, ((int)h / 2) - 30);
+        tft.println("  QRCODE");
+        tft.setCursor(30, ((int)h / 2) + 5);
+        tft.println("* NFC/RFID");
+        tft.setCursor(30, ((int)h / 2) + 20);
+        tft.println("----------");
         break;
 
     default:
