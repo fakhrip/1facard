@@ -229,10 +229,10 @@ void setup()
 
 void loop(void)
 {
-    // Update FSM if there are any changes
+    // Update FSM and redraw display if there are any changes
     if (previous_display_state != current_display_state || previous_app_state != current_app_state)
     {
-        drawPage(current_display_state, previous_display_state, choice_state);
+        drawPage(current_display_state, choice_state);
         previous_display_state = current_display_state;
         previous_app_state = current_app_state;
     }
@@ -274,10 +274,10 @@ void initializeDisplay()
     tft.init();
     tft.fillScreen(TFT_WHITE);
     drawBorder();
-    drawPage(current_display_state, previous_display_state, choice_state);
+    drawPage(current_display_state, choice_state);
 }
 
-void drawPage(DisplayState page_num, DisplayState prev_page_num, ChoiceState chosen_data_type)
+void drawPage(DisplayState page_num, ChoiceState chosen_data_type)
 {
     switch (page_num)
     {
@@ -294,7 +294,7 @@ void drawPage(DisplayState page_num, DisplayState prev_page_num, ChoiceState cho
         break;
 
     case CHOICE_PAGE:
-        drawChoicePage(prev_page_num, chosen_data_type);
+        drawChoicePage(chosen_data_type);
         break;
 
     case DATAINPUT_PAGE:
@@ -372,16 +372,16 @@ void drawInputMenuPage()
     tft.println("----------");
 }
 
-void drawChoicePage(DisplayState prev_page_num, ChoiceState chosen_data_type)
+void drawChoicePage(ChoiceState chosen_data_type)
 {
     int w = tft.width();
     tft.setTextColor(TFT_BLACK);
     tft.setTextSize(2);
 
-    switch (prev_page_num)
+    switch (chosen_data_type)
     {
-    case QRCODE_PAGE:
-    case NFC_PAGE:
+    case OUTPUT_QRCODE:
+    case OUTPUT_NFCRFID:
         // TODO:
         // SEND data to esp32pico (to kind of saying im ready),
         // depends on kind of data that want to grab (check using prev_page_num)
@@ -389,7 +389,7 @@ void drawChoicePage(DisplayState prev_page_num, ChoiceState chosen_data_type)
         // if data have existed, then iterate through the data, by checking current chosendata
         // from global var
         char data[10];
-        if (prev_page_num == QRCODE_PAGE)
+        if (chosen_data_type == INPUT_QRCODE)
         {
             strcpy(data, "qrcode");
         }
@@ -399,7 +399,34 @@ void drawChoicePage(DisplayState prev_page_num, ChoiceState chosen_data_type)
         }
         break;
 
-    case INPUTMENU_PAGE:
+    case INPUT_QRCODE:
+        int w = tft.width(), h = tft.height();
+        tft.setTextColor(TFT_DARKGREEN);
+        tft.setTextSize(3);
+
+        tft.setCursor(25, ((int)h / 2) - 65);
+        tft.println("------------");
+        tft.setCursor(25, ((int)h / 2) - 30);
+        tft.println("[*] QRCODE");
+        tft.setCursor(25, ((int)h / 2) + 5);
+        tft.println("[ ] NFC/RFID");
+        tft.setCursor(25, ((int)h / 2) + 20);
+        tft.println("------------");
+        break;
+
+    case INPUT_NFCRFID:
+        int w = tft.width(), h = tft.height();
+        tft.setTextColor(TFT_DARKGREEN);
+        tft.setTextSize(3);
+
+        tft.setCursor(25, ((int)h / 2) - 65);
+        tft.println("------------");
+        tft.setCursor(25, ((int)h / 2) - 30);
+        tft.println("[ ] QRCODE");
+        tft.setCursor(25, ((int)h / 2) + 5);
+        tft.println("[*] NFC/RFID");
+        tft.setCursor(25, ((int)h / 2) + 20);
+        tft.println("------------");
         break;
 
     default:
