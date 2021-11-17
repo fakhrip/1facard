@@ -38,12 +38,8 @@ DisplayState previous_display_state = QRCODE_PAGE;
 DisplayState current_display_state = QRCODE_PAGE;
 AppState previous_app_state = MAIN_MENU;
 AppState current_app_state = MAIN_MENU;
-
-// TODO:
-// There could be a glitch at some point because
-// changes of the choice_state doesnt match
-// with the time of changing other state
-ChoiceState choice_state = INPUT_QRCODE;
+ChoiceState previous_choice_state = INPUT_QRCODE;
+ChoiceState current_choice_state = INPUT_QRCODE;
 
 char chosen_data[100];
 /* ------------------------- */
@@ -102,7 +98,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *received_data, int len)
             current_display_state = getNextDisplayState(current_app_state, current_display_state);
             break;
         case 2:
-            current_app_state = getNextAppState(current_app_state, choice_state);
+            current_app_state = getNextAppState(current_app_state, current_choice_state);
             break;
 
         default:
@@ -121,7 +117,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *received_data, int len)
     }
 }
 
-AppState getNextAppState(AppState cur_app_state, ChoiceState cur_choice_state)
+AppState getNextAppState(AppState cur_app_state, ChoiceState cur_current_choice_state)
 {
     switch (cur_app_state)
     {
@@ -131,7 +127,7 @@ AppState getNextAppState(AppState cur_app_state, ChoiceState cur_choice_state)
         break;
 
     case CHOICE_MENU:
-        switch (cur_choice_state)
+        switch (cur_current_choice_state)
         {
         case INPUT_QRCODE:
         case INPUT_NFCRFID:
@@ -151,6 +147,7 @@ AppState getNextAppState(AppState cur_app_state, ChoiceState cur_choice_state)
 
     case PROCESS_MENU:
         current_display_state = QRCODE_PAGE;
+        current_choice_state = OUTPUT_QRCODE;
         return MAIN_MENU;
         break;
 
@@ -167,15 +164,15 @@ DisplayState getNextDisplayState(AppState cur_app_state, DisplayState cur_disp_s
         switch (cur_disp_state)
         {
         case QRCODE_PAGE:
-            choice_state = OUTPUT_NFCRFID;
+            current_choice_state = OUTPUT_NFCRFID;
             return NFC_PAGE;
             break;
         case NFC_PAGE:
-            choice_state = INPUT_QRCODE;
+            current_choice_state = INPUT_QRCODE;
             return INPUTMENU_PAGE;
             break;
         case INPUTMENU_PAGE:
-            choice_state = OUTPUT_QRCODE;
+            current_choice_state = OUTPUT_QRCODE;
             return QRCODE_PAGE;
             break;
 
@@ -185,14 +182,14 @@ DisplayState getNextDisplayState(AppState cur_app_state, DisplayState cur_disp_s
         break;
 
     case CHOICE_MENU:
-        switch (choice_state)
+        switch (current_choice_state)
         {
         case INPUT_QRCODE:
-            choice_state = INPUT_NFCRFID;
+            current_choice_state = INPUT_NFCRFID;
             break;
 
         case INPUT_NFCRFID:
-            choice_state = INPUT_QRCODE;
+            current_choice_state = INPUT_QRCODE;
             break;
 
         case OUTPUT_QRCODE:
@@ -208,6 +205,7 @@ DisplayState getNextDisplayState(AppState cur_app_state, DisplayState cur_disp_s
         break;
 
     case PROCESS_MENU:
+        current_choice_state = OUTPUT_QRCODE;
         return QRCODE_PAGE;
         break;
 
@@ -256,14 +254,17 @@ void setup()
 void loop()
 {
     // Update FSM and redraw display if there are any changes
-    if (previous_display_state != current_display_state || previous_app_state != current_app_state)
+    if (previous_display_state != current_display_state ||
+        previous_app_state != current_app_state ||
+        previous_choice_state != current_choice_state)
     {
-        Serial.printf("%d -- %d -- %d\n\n", current_app_state, current_display_state, choice_state);
+        Serial.printf("%d -- %d -- %d\n\n", current_app_state, current_display_state, current_choice_state);
         tft.fillScreen(TFT_WHITE);
         drawBorder();
-        drawPage(current_display_state, choice_state);
+        drawPage(current_display_state, current_choice_state);
         previous_display_state = current_display_state;
         previous_app_state = current_app_state;
+        previous_choice_state = current_choice_state;
     }
 }
 
@@ -272,7 +273,7 @@ void initializeDisplay()
     tft.init();
     tft.fillScreen(TFT_WHITE);
     drawBorder();
-    drawPage(current_display_state, choice_state);
+    drawPage(current_display_state, current_choice_state);
 }
 
 void drawPage(DisplayState page_num, ChoiceState chosen_data_type)
