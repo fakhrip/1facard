@@ -206,6 +206,7 @@ DisplayState getNextDisplayState(AppState cur_app_state, DisplayState cur_disp_s
 
     case PROCESS_MENU:
         current_choice_state = OUTPUT_QRCODE;
+        current_app_state = MAIN_MENU;
         return QRCODE_PAGE;
         break;
 
