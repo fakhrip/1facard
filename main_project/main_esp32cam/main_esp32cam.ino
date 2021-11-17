@@ -1,9 +1,9 @@
-#include "SPI.h"
-#include "WiFi.h"
-#include "esp_now.h"
-#include "TFT_eSPI.h"
-#include "ESPino32CAM.h"
-#include "ESPino32CAM_QRCode.h"
+#include <SPI.h>
+#include <WiFi.h>
+#include <esp_now.h>
+#include <TFT_eSPI.h>
+#include <ESPino32CAM.h>
+#include <ESPino32CAM_QRCode.h>
 
 /* ------ State Stuff ------ */
 enum DisplayState
@@ -223,23 +223,6 @@ void setup()
         ;
 
     Serial.println("Starting ESP32CAM .....");
-    initializeDisplay();
-    initializeCommunications();
-}
-
-void loop(void)
-{
-    // Update FSM and redraw display if there are any changes
-    if (previous_display_state != current_display_state || previous_app_state != current_app_state)
-    {
-        drawPage(current_display_state, choice_state);
-        previous_display_state = current_display_state;
-        previous_app_state = current_app_state;
-    }
-}
-
-void initializeCommunications()
-{
     WiFi.mode(WIFI_STA);
 
     // Init ESP-NOW
@@ -267,6 +250,21 @@ void initializeCommunications()
 
     // Register onreceive callback
     esp_now_register_recv_cb(OnDataRecv);
+    initializeDisplay();
+}
+
+void loop()
+{
+    // Update FSM and redraw display if there are any changes
+    if (previous_display_state != current_display_state || previous_app_state != current_app_state)
+    {
+        Serial.println("test");
+        tft.fillScreen(TFT_WHITE);
+        drawBorder();
+        drawPage(current_display_state, choice_state);
+        previous_display_state = current_display_state;
+        previous_app_state = current_app_state;
+    }
 }
 
 void initializeDisplay()
@@ -374,7 +372,7 @@ void drawInputMenuPage()
 
 void drawChoicePage(ChoiceState chosen_data_type)
 {
-    int w = tft.width();
+    int w = tft.width(), h = tft.height();
     tft.setTextColor(TFT_BLACK);
     tft.setTextSize(2);
 
@@ -400,7 +398,6 @@ void drawChoicePage(ChoiceState chosen_data_type)
         break;
 
     case INPUT_QRCODE:
-        int w = tft.width(), h = tft.height();
         tft.setTextColor(TFT_DARKGREEN);
         tft.setTextSize(3);
 
@@ -415,7 +412,6 @@ void drawChoicePage(ChoiceState chosen_data_type)
         break;
 
     case INPUT_NFCRFID:
-        int w = tft.width(), h = tft.height();
         tft.setTextColor(TFT_DARKGREEN);
         tft.setTextSize(3);
 
@@ -486,7 +482,7 @@ void drawDisplayPage(ChoiceState chosen_data_type)
 void drawLoadingText()
 {
     tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(2);
+    tft.setTextSize(1);
 
     tft.setCursor(30, 30);
     tft.println("Loading ...");

@@ -34,6 +34,23 @@ MessageStruct transfer_payload;
 MessageStruct receive_payload;
 /* ---------------------------------- */
 
+void sendData(int payoad_event_type, int payload_button_click, char *payload_data_send)
+{
+    transfer_payload.event_type = payoad_event_type;
+    transfer_payload.button_click = payload_button_click;
+    strcpy(transfer_payload.data, payload_data_send);
+    esp_err_t result = esp_now_send(cam_address, (uint8_t *)&transfer_payload, sizeof(transfer_payload));
+
+    if (result == ESP_OK)
+    {
+        Serial.println("Sent with success");
+    }
+    else
+    {
+        Serial.println("Error sending the data");
+    }
+}
+
 class Button
 {
 public:
@@ -106,23 +123,6 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *received_data, int len)
     strcpy(payload_data, receive_payload.data);
 }
 
-void sendData(int payoad_event_type, int payload_button_click, char *payload_data_send)
-{
-    transfer_payload.event_type = payoad_event_type;
-    transfer_payload.button_click = payload_button_click;
-    strcpy(transfer_payload.data, payload_data_send);
-    esp_err_t result = esp_now_send(cam_address, (uint8_t *)&transfer_payload, sizeof(transfer_payload));
-
-    if (result == ESP_OK)
-    {
-        Serial.println("Sent with success");
-    }
-    else
-    {
-        Serial.println("Error sending the data");
-    }
-}
-
 void setup()
 {
     Serial.begin(115200);
@@ -130,17 +130,6 @@ void setup()
         ;
 
     Serial.printf("Starting ESP32PICO .....");
-    initializeCommunications();
-}
-
-void loop()
-{
-    red_button.checkPressed();
-    green_button.checkPressed();
-}
-
-void initializeCommunications()
-{
     WiFi.mode(WIFI_STA);
 
     // Init ESP-NOW
@@ -168,4 +157,10 @@ void initializeCommunications()
 
     // Register onreceive callback
     esp_now_register_recv_cb(OnDataRecv);
+}
+
+void loop()
+{
+    red_button.checkPressed();
+    green_button.checkPressed();
 }
