@@ -1,14 +1,10 @@
 #include <SPI.h>
 #include <WiFi.h>
 #include <esp_now.h>
-#include <Arduino.h>
-#include <soc/soc.h>
 #include <TFT_eSPI.h>
 #include <TFT_eFEX.h>
 #include <esp_camera.h>
 #include <ESPino32CAM.h>
-#include <driver/rtc_io.h>
-#include <soc/rtc_cntl_reg.h>
 #include <ESPino32CAM_QRCode.h>
 
 /* ------ State Stuff ------ */
@@ -112,9 +108,6 @@ MessageStruct receive_payload;
 
 ESPino32CAM cam;
 ESPino32QRCode qr;
-
-camera_fb_t *fb = NULL;
-dl_matrix3du_t *rgb888, *rgb565, *image_rgb;
 /* -------------------------- */
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -286,7 +279,6 @@ void sendData(int payoad_event_type, int payload_button_click, int payload_data_
 
 void setup()
 {
-    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
     pinMode(FLASH_PIN, OUTPUT);
     digitalWrite(FLASH_PIN, LOW);
 
@@ -311,21 +303,9 @@ void setup()
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = 20000000;
     config.pixel_format = PIXFORMAT_JPEG;
-
-    // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
-    //                      for larger pre-allocated frame buffer.
-    if (psramFound())
-    {
-        config.frame_size = FRAMESIZE_UXGA;
-        config.jpeg_quality = 10;
-        config.fb_count = 2;
-    }
-    else
-    {
-        config.frame_size = FRAMESIZE_SVGA;
-        config.jpeg_quality = 12;
-        config.fb_count = 1;
-    }
+    config.frame_size = FRAMESIZE_VGA;
+    config.jpeg_quality = 4;
+    config.fb_count = 1;
 
     // camera init
     esp_err_t err = esp_camera_init(&config);
@@ -338,7 +318,7 @@ void setup()
     // Initialize the decoding object.
     qr.init(&cam);
     sensor_t *s = cam.sensor();
-    s->set_framesize(s, FRAMESIZE_240X240);
+    s->set_framesize(s, FRAMESIZE_CIF);
     s->set_whitebal(s, true);
 
     Serial.begin(115200);
@@ -381,7 +361,10 @@ void loop()
     // Update FSM and redraw display if there are any changes
     if (previous_display_state != current_display_state ||
         previous_app_state != current_app_state ||
-        previous_choice_state != current_choice_state)
+        previous_choice_state != current_choice_state ||
+        (current_app_state == PROCESS_MENU &&
+         current_display_state == DATAINPUT_PAGE &&
+         current_choice_state == INPUT_QRCODE))
     {
         Serial.printf("%d -- %d -- %d\n\n", current_app_state, current_display_state, current_choice_state);
         tft.fillScreen(TFT_WHITE);
@@ -558,15 +541,14 @@ void drawChoicePage(ChoiceState chosen_data_type)
 
 void drawDataInputPage(ChoiceState chosen_data_type)
 {
-    switch (chosen_data_type)
+    if (chosen_data_type == INPUT_QRCODE)
     {
-    case INPUT_QRCODE:
         tft.fillScreen(TFT_WHITE);
 
         digitalWrite(FLASH_PIN, HIGH);
         delay(500);
 
-        fb = cam.capture();
+        camera_fb_t *fb = cam.capture();
         digitalWrite(FLASH_PIN, LOW);
         if (!fb)
         {
@@ -576,6 +558,7 @@ void drawDataInputPage(ChoiceState chosen_data_type)
 
         fex.drawJpg((const uint8_t *)fb->buf, fb->len, 0, 0);
 
+        dl_matrix3du_t *rgb888, *rgb565;
         if (cam.jpg2rgb(fb, &rgb888))
         {
             rgb565 = cam.rgb565(rgb888);
@@ -583,6 +566,7 @@ void drawDataInputPage(ChoiceState chosen_data_type)
         cam.clearMemory(rgb888);
         cam.clearMemory(rgb565);
 
+        dl_matrix3du_t *image_rgb;
         if (cam.jpg2rgb(fb, &image_rgb))
         {
             cam.clearMemory(fb);
@@ -603,20 +587,14 @@ void drawDataInputPage(ChoiceState chosen_data_type)
         }
 
         cam.clearMemory(image_rgb);
-        esp_camera_fb_return(fb);
-        fb = NULL;
-        break;
-
-    case INPUT_NFCRFID:
+    }
+    else if (chosen_data_type == INPUT_NFCRFID)
+    {
         drawLoadingText();
         // TODO:
         // SEND data to esp32pico (to kind of saying im ready),
         // set the NFC Card to scan mode in esp32pico
         // and then READ data from espnow (write success / errors depending on the result)
-        break;
-
-    default:
-        break;
     }
 }
 
