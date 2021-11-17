@@ -5,6 +5,7 @@
 #include <TFT_eFEX.h>
 #include <esp_camera.h>
 #include <ESPino32CAM.h>
+#include <qrcode_espi.h>
 #include <ESPino32CAM_QRCode.h>
 
 /* ------ State Stuff ------ */
@@ -49,6 +50,7 @@ char chosen_data[100];
 /* ------ TFT Display Stuff ------ */
 TFT_eSPI tft = TFT_eSPI();
 TFT_eFEX fex = TFT_eFEX(&tft);
+QRcode_eSPI qrcode(&tft);
 /* ------------------------------- */
 
 /* ------ Communications Stuff ------ */
@@ -380,6 +382,7 @@ void initializeDisplay()
 {
     tft.init();
     tft.fillScreen(TFT_WHITE);
+    qrcode.init();
     drawBorder();
     drawPage(current_display_state, current_choice_state);
 }
@@ -604,9 +607,7 @@ void drawDisplayPage(ChoiceState chosen_data_type)
     {
     case OUTPUT_QRCODE:
         tft.fillScreen(TFT_WHITE);
-        // TODO:
-        // GENERATE QR Code based on chosenData
-        // and then DISPLAY it to the tft screen using https://github.com/yoprogramo/QRcode_eSPI
+        qrcode.create("test");
         break;
 
     case OUTPUT_NFCRFID:
