@@ -92,11 +92,11 @@ public:
             switch (button_pin)
             {
             case RED_BUTTON:
-                sendData(1, -1, 1, "");
+                sendData(1, 1, -1, "");
                 break;
 
             case GREEN_BUTTON:
-                sendData(1, -1, 2, "");
+                sendData(1, 2, -1, "");
                 break;
 
             default:
