@@ -76,6 +76,7 @@ typedef struct MessageStruct
 
     /*  DATA TYPE
      *  ---------
+     *  [-1] Dont Care
      *  [1] QRCODE data
      *  [2] NFC/RFID data
      */

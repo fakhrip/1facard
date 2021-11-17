@@ -17,8 +17,8 @@ typedef struct MessageStruct
      */
     int event_type;
 
-    /*  EVENT TYPE
-     *  ----------
+    /*  BUTTON TYPE
+     *  -----------
      *  [-1] Dont Care 
      *  [1] RED Button
      *  [2] GREEN Button
