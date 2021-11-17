@@ -258,7 +258,7 @@ void loop()
     // Update FSM and redraw display if there are any changes
     if (previous_display_state != current_display_state || previous_app_state != current_app_state)
     {
-        Serial.println("test");
+        Serial.printf("%d -- %d -- %d\n\n", current_app_state, current_display_state, choice_state);
         tft.fillScreen(TFT_WHITE);
         drawBorder();
         drawPage(current_display_state, choice_state);
@@ -402,12 +402,12 @@ void drawChoicePage(ChoiceState chosen_data_type)
         tft.setTextSize(3);
 
         tft.setCursor(30, ((int)h / 2) - 65);
-        tft.println("------------");
+        tft.println("----------");
         tft.setCursor(30, ((int)h / 2) - 30);
         tft.println("* QRCODE");
         tft.setCursor(30, ((int)h / 2) + 5);
         tft.println("  NFC/RFID");
-        tft.setCursor(30, ((int)h / 2) + 20);
+        tft.setCursor(30, ((int)h / 2) + 35);
         tft.println("----------");
         break;
 
@@ -416,12 +416,12 @@ void drawChoicePage(ChoiceState chosen_data_type)
         tft.setTextSize(3);
 
         tft.setCursor(30, ((int)h / 2) - 65);
-        tft.println("------------");
+        tft.println("----------");
         tft.setCursor(30, ((int)h / 2) - 30);
         tft.println("  QRCODE");
         tft.setCursor(30, ((int)h / 2) + 5);
         tft.println("* NFC/RFID");
-        tft.setCursor(30, ((int)h / 2) + 20);
+        tft.setCursor(30, ((int)h / 2) + 35);
         tft.println("----------");
         break;
 
